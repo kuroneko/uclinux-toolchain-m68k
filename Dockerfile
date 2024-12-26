@@ -1,4 +1,4 @@
-FROM ubuntu:24.04
+FROM ubuntu:24.04 AS build
 
 RUN apt-get -yy update && apt-get -yy install build-essential zlib1g-dev wget \
 	texinfo texi2html bison flex
@@ -19,3 +19,12 @@ RUN chmod a+x ./build-uclinux-tools.sh
 ENV PATH=/opt/m68k-uclinux-tools/bin:/usr/local/bin:/usr/bin:/bin
 
 RUN ./build-uclinux-tools.sh build
+
+# finally, copy out the binaries only to shrink the final image size
+FROM ubuntu:24.04
+
+RUN apt-get -yy update && apt-get -yy install build-essential zlib1g-dev
+
+COPY --from=build /opt/m68k-uclinux-tools /opt/m68k-uclinux-tools/
+
+ENV PATH=/opt/m68k-uclinux-tools/bin:/usr/local/bin:/usr/bin:/bin
