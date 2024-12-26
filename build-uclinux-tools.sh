@@ -86,6 +86,16 @@ GCC="${BASEDIR}/gcc-${GCCVERS}"
 KERNEL="${BASEDIR}/linux-${LINUXVERS}"
 UCLIBC="${BASEDIR}/uClibc-${UCLIBCVERS}"
 
+# number of concurrent compiles to run
+if [ -z "${MAXPROCS}" ]; then
+  MAXPROCS="$(grep processor /proc/cpuinfo | wc -l)"
+  if [ -z "${MAXPROCS}" ]; then
+    echo "MAXPROCS not set, and failed to detect core/processor count.  using 1."
+    MAXPROCS=1
+  fi
+fi
+echo "Building on ${MAXPROCS} threads."
+
 #############################################################
 #
 # Don't edit these
@@ -307,7 +317,7 @@ stage2()
 	mkdir ${TARGET}-binutils
 	cd ${TARGET}-binutils
 	${BINUTILS}/configure ${HOST_TARGET} --target=${TARGET} ${PREFIXOPT}
-	${MAKE}
+	${MAKE} -j${MAXPROCS}
 	${MAKE} install
 
 	cd ${BASEDIR}
@@ -332,7 +342,7 @@ stage3()
 		--with-bfd-include-dir=${BASEDIR}/${TARGET}-binutils/bfd \
 		--with-binutils-include-dir=${BINUTILS}/include \
 		--target=${TARGET} ${PREFIXOPT}
-	${MAKE}
+	${MAKE} -j${MAXPROCS}
 	${MAKE} install
 
 	cd $BASEDIR
@@ -555,7 +565,7 @@ stage6()
 		--with-system-zlib \
 		--enable-languages=c
 
-	${MAKE}
+	${MAKE} -j${MAXPROCS}
 	${MAKE} install
 
 	cd ${BASEDIR}
@@ -593,7 +603,7 @@ stage7()
 
 		${MAKE} oldconfig CROSS="${TARGET}-" TARGET_ARCH=${_CPU} </dev/null || exit 1
 		${MAKE} clean     CROSS="${TARGET}-" TARGET_ARCH=${_CPU} || true
-		${MAKE} V=1 all   CROSS="${TARGET}-" TARGET_ARCH=${_CPU} ARCH_CFLAGS="${cflags}" </dev/null || exit 1
+		${MAKE} -j${MAXPROCS} V=1 all   CROSS="${TARGET}-" TARGET_ARCH=${_CPU} ARCH_CFLAGS="${cflags}" </dev/null || exit 1
 
 		destdir=${PREFIX}/${TARGET}/lib/$mlibdir
 		mkdir -p $destdir
@@ -630,7 +640,7 @@ stage8()
 		--with-system-zlib \
 		--enable-languages=c,c++
 
-	${MAKE}
+	${MAKE} -j${MAXPROCS}
 	${MAKE} install
 
 	#
@@ -661,7 +671,7 @@ stage9()
 	if [ "${CYGWIN}" ]; then
 		${PATCH} -p1 < ../genromfs-0.5.1-cygwin-020605.patch
 	fi
-	${MAKE}
+	${MAKE} -j${MAXPROCS}
 	cp genromfs${EXE} ${PREFIX}/bin/.
 	chmod 755 ${PREFIX}/bin/genromfs${EXE}
 
