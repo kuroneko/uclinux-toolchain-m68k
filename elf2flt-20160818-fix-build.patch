@@ -1,0 +1,42 @@
+Index: elf2flt-20160818/elf2flt.c
+===================================================================
+--- elf2flt-20160818.orig/elf2flt.c
++++ elf2flt-20160818/elf2flt.c
+@@ -340,7 +340,8 @@ output_relocs (
+   uint32_t		sym_addr, sym_vma, section_vma;
+   int			relsize, relcount;
+   int			flat_reloc_count;
+-  int			sym_reloc_size, rc;
++  int			sym_reloc_size = 0;
++  int			rc;
+   int			got_size = 0;
+   int			bad_relocs = 0;
+   asymbol		**symb;
+Index: elf2flt-20160818/ld-elf2flt.c
+===================================================================
+--- elf2flt-20160818.orig/ld-elf2flt.c
++++ elf2flt-20160818/ld-elf2flt.c
+@@ -568,14 +568,19 @@ int main(int argc, char *argv[])
+ 	if (!flag_verbose) {
+ 		unlink(tmp_file);
+ 		unlink(output_flt);
+-		unlink(output_elf);
++		if (output_elf)
++			unlink(output_elf);
+ 	} else {
+ 		fprintf(stderr,
+ 			"leaving elf2flt temp files behind:\n"
+ 			"tmp_file   = %s\n"
+-			"output_flt = %s\n"
+-			"output_elf = %s\n",
+-			tmp_file, output_flt, output_elf);
++			"output_flt = %s\n",
++			tmp_file, output_flt);
++		if (output_elf) {
++			fprintf(stderr,
++				"output_elf = %s\n",
++				output_elf);
++		}
+ 	}
+ 	return status;
+ }
