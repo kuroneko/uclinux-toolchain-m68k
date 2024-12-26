@@ -281,7 +281,9 @@ stage1()
 	# Apply all patches
 	#
 	apply_patch elf2flt-20160818-fix-build.patch elf2flt-${ELF2FLTVERS}
+
 	apply_patch gcc-5.4.0-fix-libgcc-build.patch gcc-${GCCVERS}
+	apply_patch gcc-5.4.0-fix-build-cxx-issues.patch gcc-${GCCVERS}
 
 	# Get GCC version again using the extracted source
 	gcc_version_setup
